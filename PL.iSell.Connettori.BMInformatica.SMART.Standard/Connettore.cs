@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace PL.iSell.Connettori.BMInformatica.SMART.Standard
 {
@@ -8,15 +11,6 @@ namespace PL.iSell.Connettori.BMInformatica.SMART.Standard
         public Connettore()
         {
             this.Personalizzazione = "Standard";
-        }
-    }
-
-    internal static class Program
-    {
-        [STAThread]
-        private static void Main()
-        {
-            new Connettore().Avvia();
         }
     }
 }
