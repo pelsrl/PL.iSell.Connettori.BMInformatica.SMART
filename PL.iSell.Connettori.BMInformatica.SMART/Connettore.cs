@@ -1636,7 +1636,7 @@ FROM
 
 #warning Manca da gestire gli sconti chiusura, che attualmente non gestiamo poichè manca la generazione di nuovi codici
                 var risposta = apiInstance.ApiOrdineInserisciPostWithHttpInfo(
-                    "",
+                    documento.IDAnagraficaIntestatario,
                     documento.IDDeposito,
                     documento.IDTipoDocumento,
                     idAnagraficaDestinatario,
