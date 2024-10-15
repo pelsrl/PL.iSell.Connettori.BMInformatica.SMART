@@ -1022,8 +1022,13 @@ FROM
                 for (int i = 0; i < datiScontiAnagrafiche.NumeroRighe; i++)
                 {
                     listaScontiAnagrafica.Clear();
-                    // Gestisce sconto 
-                    if (dizionarioTabellaTsm.TryGetValue(datiScontiAnagrafiche[i, "CodiceSconto1"].ToTrimmedString(), out var listaScontiRilevati1))
+                    // Gestisce sconto
+                    
+                    string codiceSconto1 = datiScontiAnagrafiche[i, "CodiceSconto1"].ToTrimmedString();
+                    if (codiceSconto1 == "")
+                        continue;
+                    
+                    if (dizionarioTabellaTsm.TryGetValue(codiceSconto1, out var listaScontiRilevati1))
                         listaScontiAnagrafica.AddRange(listaScontiRilevati1);
 
                     string idAnagrafica = datiScontiAnagrafiche[i, "IDAnagrafica"].ToTrimmedString();
@@ -1631,7 +1636,7 @@ FROM
 
 #warning Manca da gestire gli sconti chiusura, che attualmente non gestiamo poichè manca la generazione di nuovi codici
                 var risposta = apiInstance.ApiOrdineInserisciPostWithHttpInfo(
-                    documento.IDAnagraficaIntestatario,
+                    "",
                     documento.IDDeposito,
                     documento.IDTipoDocumento,
                     idAnagraficaDestinatario,
