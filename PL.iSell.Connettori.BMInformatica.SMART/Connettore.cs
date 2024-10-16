@@ -542,6 +542,8 @@ SELECT
     TSM_CODICE
 FROM
     cli
+WHERE
+    TSM_CODICE <> ''
 ", this.ConnessioneSmart,
                 new ColonnaParametroTabella("IDAnagrafica", ColonnaParametroTabella.TipiDati.Alfanumerico, "CODICE"),
                 new ColonnaParametroTabella("CodiceSconto1", ColonnaParametroTabella.TipiDati.Alfanumerico, "TSM_CODICE")
@@ -1022,12 +1024,13 @@ FROM
                 for (int i = 0; i < datiScontiAnagrafiche.NumeroRighe; i++)
                 {
                     listaScontiAnagrafica.Clear();
+
                     // Gestisce sconto
-                    
-                    string codiceSconto1 = datiScontiAnagrafiche[i, "CodiceSconto1"].ToTrimmedString();
-                    if (codiceSconto1 == "")
+
+                    var codiceSconto1 = datiScontiAnagrafiche[i, "CodiceSconto1"].ToTrimmedString();
+                    if (codiceSconto1 == string.Empty)
                         continue;
-                    
+
                     if (dizionarioTabellaTsm.TryGetValue(codiceSconto1, out var listaScontiRilevati1))
                         listaScontiAnagrafica.AddRange(listaScontiRilevati1);
 
@@ -1041,14 +1044,17 @@ FROM
                         return new RisultatoConDescrizione(true);
 
                     // Gestisce sconti
-                    string stringaScontiAnagrafiche = String.Join(";", listaScontiAnagrafica);
+                    var stringaScontiAnagrafiche = String.Join(";", listaScontiAnagrafica);
 
-                    this.ConnessioneiSellOUT.AccodaRegistrazioneImpostazioneApplicazioneISell(
-                        "ValoriScontiRigaDocumento",
-                        "IDAnagrafica=" + datiScontiAnagrafiche[i, "IDAnagrafica"].ToTrimmedString(),
-                        // Concatenare valori sconto come stringa
-                        stringaScontiAnagrafiche
-                    );
+                    if (stringaScontiAnagrafiche != string.Empty)
+                    {
+                        this.ConnessioneiSellOUT.AccodaRegistrazioneImpostazioneApplicazioneISell(
+                            "ValoriScontiRigaDocumento",
+                            "IDAnagrafica=" + datiScontiAnagrafiche[i, "IDAnagrafica"].ToTrimmedString(),
+                            // Concatenare valori sconto come stringa
+                            stringaScontiAnagrafiche
+                        );
+                    }
                 }
             }
 
@@ -1163,8 +1169,8 @@ FROM
             using (TabellaDati datiRigheFatture = this.RilevaTabellaDatiDaQuery("RigheFatture"))
             {
                 this.ImpostaInformazioniElaborazione("Caricamento dati righe fatture", datiRigheFatture.NumeroRighe);
-                List<decimal> listaScontiRigaDocumento = new List<decimal>();
-                for (int i = 0; i < datiRigheFatture.NumeroRighe; i++)
+                var listaScontiRigaDocumento = new List<decimal>();
+                for (var i = 0; i < datiRigheFatture.NumeroRighe; i++)
                 {
                     listaScontiRigaDocumento.Clear();
                     this.AvanzaStatoElaborazione();
@@ -1175,11 +1181,11 @@ FROM
                     if (dizionarioTabellaTsm.TryGetValue(datiRigheFatture[i, "CodiceSconto2"].ToTrimmedString(), out var listaScontiRilevati2))
                         listaScontiRigaDocumento.AddRange(listaScontiRilevati2);
 
-                    string idRigaDocumento = datiRigheFatture[i, "IDRigaDocumento"].ToTrimmedString();
+                    var idRigaDocumento = datiRigheFatture[i, "IDRigaDocumento"].ToTrimmedString();
                     if (listaScontiRigaDocumento.Count > 8)
                         this.RegistraLog($"Numero sconti maggiore di 8 per riga fattura. IDRigaDocumento: {idRigaDocumento}", TipiLog.Avviso);
 
-                    string idCausaleRigaDocumento = "";
+                    var idCausaleRigaDocumento = "";
                     switch (datiRigheFatture[i, "IDCausaleRigaDocumento"].ToTrimmedString())
                     {
                         case "normale":
@@ -1228,8 +1234,8 @@ FROM
             using (TabellaDati datiTestataDdt = this.RilevaTabellaDatiDaQuery("Ddt"))
             {
                 this.ImpostaInformazioniElaborazione("Caricamento dati ddt", datiTestataDdt.NumeroRighe);
-                List<decimal> listaScontiTestataDocumento = new List<decimal>();
-                for (int i = 0; i < datiTestataDdt.NumeroRighe; i++)
+                var listaScontiTestataDocumento = new List<decimal>();
+                for (var i = 0; i < datiTestataDdt.NumeroRighe; i++)
                 {
                     listaScontiTestataDocumento.Clear();
                     // Gestisce sconto 
@@ -1243,7 +1249,7 @@ FROM
                         listaScontiTestataDocumento.AddRange(listaScontiRilevati2);
                     }
 
-                    string idDocumento = datiTestataDdt[i, "IDDocumento"].ToTrimmedString();
+                    var idDocumento = datiTestataDdt[i, "IDDocumento"].ToTrimmedString();
                     if (listaScontiTestataDocumento.Count > 8)
                         this.RegistraLog($"Numero sconti maggiore di 8 per testata fattura. IDDocumento: {idDocumento}", TipiLog.Avviso);
 
@@ -1252,7 +1258,7 @@ FROM
                     if (this.InterruzioneElaborazioneInCorso)
                         return new RisultatoConDescrizione(true);
 
-                    string idTipoDocumento = "";
+                    var idTipoDocumento = "";
                     switch (datiTestataDdt[i, "IDTipoDocumento"].ToTrimmedString())
                     {
                         case "ddt":
@@ -1558,7 +1564,7 @@ FROM
             var dizionarioTabellaScontiStringaConCodici = new Dictionary<string, InsiemeInsensitive>(StringComparer.OrdinalIgnoreCase);
             foreach (var rigaScontoTsm in this.PrelevaListaSconti())
             {
-                string stringaSconti = string.Join("+", rigaScontoTsm.Value);
+                string stringaSconti = string.Join("+", rigaScontoTsm.Value.Select(x=> x.ToString("0.00")));
                 if (!dizionarioTabellaScontiStringaConCodici.ContainsKey(stringaSconti))
                     dizionarioTabellaScontiStringaConCodici[stringaSconti] = new InsiemeInsensitive();
 
@@ -1569,7 +1575,7 @@ FROM
             {
                 string codiceScontoAnagrafica;
                 var qScontoPerAnagrafica = new CompilatoreQueryDiSelezione("cli");
-                qScontoPerAnagrafica.Filtro.AggiungiElementoFiltroStandard("CODICE", documento.IDAnagraficaIntestatario);
+                qScontoPerAnagrafica.Filtro.AggiungiElementoFiltroStandard("CODICE",OperatoriDiConfronto.Uguale, documento.IDAnagraficaIntestatario);
                 using (TabellaDati datiAnagraficaSconto = this.ConnessioneSmart.EseguiSelezione(qScontoPerAnagrafica))
                 {
                     codiceScontoAnagrafica = datiAnagraficaSconto.NumeroRighe > 0 ? datiAnagraficaSconto[0, "TSM_CODICE"].ToTrimmedString() : string.Empty;
@@ -1585,7 +1591,7 @@ FROM
                             out InsiemeInsensitive insiemeCorrispondenzeStringaSconti))
                     {
 #warning Cambiare quando verrà aggiunta la generazione di nuovi codici nella tsm
-#warning Attualmente da Castellini esiste il codice 0, pertanto viene sempre trovato un codice anche quando non ci sono sconti. Capire in futuro se è una logica comune che lo 0 esiste sempreo se va gestita diversamente
+#warning Attualmente da Castellini esiste il codice 0, pertanto viene sempre trovato un codice anche quando non ci sono sconti. Capire in futuro se è una logica comune che lo 0 esiste sempre o se va gestita diversamente
                         return new RisultatoElaborazione(false, "Impossibile rilevare il codice sconto per la riga documento " + riga.IDRigaDocumento);
                     }
 
@@ -1614,14 +1620,14 @@ FROM
 
                     listaRighe.Add(
                         new ApiordineinserisciRighe(
-                            riga.DescrizioneRiga,
-                            riga.IDArticolo,
+                            (riga.DescrizioneRiga == string.Empty && riga.IDArticolo == string.Empty) ? "-" : riga.DescrizioneRiga,
+                            riga.IDArticolo == string.Empty ? ApiClient.NULL_VALUE : riga.IDArticolo,
                             (int)riga.Quantita,
-                            codiceSconto,
-                            "",
+                            codiceSconto == string.Empty ? ApiClient.NULL_VALUE : codiceSconto,
+                            ApiClient.NULL_VALUE,
                             riga.IDAliquotaIVA,
                             (float)riga.Prezzo,
-                            riga.Note,
+                            riga.Note == string.Empty ? ApiClient.NULL_VALUE : riga.Note,
                             null
                         )
                     );
@@ -1636,26 +1642,27 @@ FROM
 
 #warning Manca da gestire gli sconti chiusura, che attualmente non gestiamo poichè manca la generazione di nuovi codici
                 var risposta = apiInstance.ApiOrdineInserisciPostWithHttpInfo(
+                    
                     documento.IDAnagraficaIntestatario,
-                    documento.IDDeposito,
+                    documento.IDDeposito == string.Empty ? ApiClient.NULL_VALUE : documento.IDDeposito,
                     documento.IDTipoDocumento,
-                    idAnagraficaDestinatario,
-                    documento.NumeroDocumento.ToString(),
+                    idAnagraficaDestinatario == string.Empty ? ApiClient.NULL_VALUE : idAnagraficaDestinatario,
+                    ApiClient.NULL_VALUE,
                     PL.Utilita.FunzioniDati.ConvertiStringaDataYYYYMMDDHHMMSSMMInData(documento.DataDocumento).ToString("dd-mm-yyyy"),
                     PL.Utilita.FunzioniDati.ConvertiStringaDataYYYYMMDDHHMMSSMMInData(documento.DataConsegna).ToString("dd-mm-yyyy"),
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                    documento.IDValuta,
-                    documento.IDPagamento,
-                    documento.IDListino,
-                    "",
-                    documento.IDOperatoreOrigineDati,
-                    "",
-                    documento.Note,
+                    ApiClient.NULL_VALUE,
+                    ApiClient.NULL_VALUE,
+                    ApiClient.NULL_VALUE,
+                    ApiClient.NULL_VALUE,
+                    ApiClient.NULL_VALUE,
+                    ApiClient.NULL_VALUE,
+                    ApiClient.NULL_VALUE,
+                    documento.IDPagamento == string.Empty ? ApiClient.NULL_VALUE : documento.IDPagamento,
+                    documento.IDListino == string.Empty ? ApiClient.NULL_VALUE : documento.IDListino,
+                    ApiClient.NULL_VALUE,
+                    documento.IDOperatoreOrigineDati == string.Empty ? ApiClient.NULL_VALUE : documento.IDOperatoreOrigineDati,
+                    ApiClient.NULL_VALUE,
+                    documento.Note == string.Empty ? ApiClient.NULL_VALUE : documento.Note,
                     listaRighe);
 
                 // risposta.StatusCode
@@ -1666,6 +1673,7 @@ FROM
                 }
 
                 documento.IDEsternoElaborazioneElemento = risposta.Data.IdOvt.ToString();
+                documento.RiferimentoEsternoElaborazioneElemento = risposta.Data.IdOvt.ToString();
             }
 
             return new RisultatoElaborazione(true);
@@ -1693,7 +1701,7 @@ FROM
                 riga.Sconto7,
                 riga.Sconto8
             });
-            return string.Join("+", listaSconti);
+            return string.Join("+", listaSconti.Select(x => x.ToString("0.00")));
         }
 
         //     var URLApi = this.RilevaValoreParametro("URLApi").ToTrimmedString();
