@@ -1582,6 +1582,7 @@ FROM
                 }
 
                 List<ApiordineinserisciRighe> listaRighe = new List<ApiordineinserisciRighe>();
+                int posizione = 0;
                 foreach (var riga in documento.RigheDocumento)
                 {
                     string codiceSconto = string.Empty;
@@ -1619,18 +1620,21 @@ FROM
                     }
 
                     listaRighe.Add(
-                        new ApiordineinserisciRighe(
+                        new RigaInserimentoOrdine(
+                            posizione,
                             (riga.DescrizioneRiga == string.Empty && riga.IDArticolo == string.Empty) ? "-" : riga.DescrizioneRiga,
-                            riga.IDArticolo == string.Empty ? ApiClient.NULL_VALUE : riga.IDArticolo,
+                            riga.IDArticolo == string.Empty ? null : riga.IDArticolo,
                             (int)riga.Quantita,
-                            codiceSconto == string.Empty ? ApiClient.NULL_VALUE : codiceSconto,
-                            ApiClient.NULL_VALUE,
+                            codiceSconto == string.Empty ? null : codiceSconto,
+                            null,
                             riga.IDAliquotaIVA,
                             (float)riga.Prezzo,
-                            riga.Note == string.Empty ? ApiClient.NULL_VALUE : riga.Note,
-                            null
+                            riga.Note == string.Empty ? null : riga.Note,
+                            ApiordineinserisciRighe.TipoMovimentoEnum.Normale
                         )
                     );
+
+                    posizione++;
                 }
 
                 string idAnagraficaDestinatario = string.Empty;
@@ -1645,7 +1649,7 @@ FROM
                     
                     documento.IDAnagraficaIntestatario,
                     documento.IDDeposito == string.Empty ? ApiClient.NULL_VALUE : documento.IDDeposito,
-                    documento.IDTipoDocumento,
+                    "ORDB",
                     idAnagraficaDestinatario == string.Empty ? ApiClient.NULL_VALUE : idAnagraficaDestinatario,
                     ApiClient.NULL_VALUE,
                     PL.Utilita.FunzioniDati.ConvertiStringaDataYYYYMMDDHHMMSSMMInData(documento.DataDocumento).ToString("dd-mm-yyyy"),
