@@ -1374,28 +1374,6 @@ FROM
                     };
                     this.ConnessioneiSellOUT.EseguiInserimentoRigaDatiiSell(righeDdt);
                 }
-#error Aggiunto TipiDocumento da tabella tdo
-                    this.ConnessioneiSellOUT.EseguiInserimentoRigaDatiiSell(new RigaDatiTipiDocumenti
-                    {
-                        IDTipoDocumento =
-                            //"SMART_" +
-                            informazioniTipoDocumento.Key,
-                        DescrizioneTipoDocumento = informazioniTipoDocumento.Value,
-                        GestioneAnagraficaIntestatario = GestioneAnagraficaIntestatario.Gestito,
-                        GestioneAnagraficaDestinatario = GestioneAnagraficaDestinatario.Gestito,
-                        GestioneAnagraficaRiferimento = GestioneAnagraficaRiferimento.Gestito,
-                        GestioneNote = GestioneNote.Gestito,
-                        GestionePagamento = GestionePagamento.Gestito,
-                        GestioneListino = GestioneListino.Gestito,
-                        GestioneLotti = Utilita.ValoriTabelle.TipiDocumenti.GestioneLotti.Gestito,
-                        AttivitaPassivita = (Utilita.ValoriTabelle.TipiDocumenti.AttivitaPassivita)AttivitaPassivita.Attivo,
-                        GestioneDeposito = GestioneDeposito.Gestito,
-                        GestioneScontoChiusura = GestioneScontoChiusura.Gestito,
-                        GestioneVariantiArticoli = 1,
-                        GestioneDataConsegna = GestioneDataConsegna.Gestito,
-                        GestioneTipoSpedizione = GestioneTipoSpedizione.Gestito,
-                        GestioneVettore = GestioneVettore.Gestito
-                    });
             }
 
             return new RisultatoConDescrizione(true);
@@ -1578,6 +1556,7 @@ FROM
                 }
 
                 List<ApiordineinserisciRighe> listaRighe = new List<ApiordineinserisciRighe>();
+                int posizione = 0;
                 foreach (var riga in documento.RigheDocumento)
                 {
                     string codiceSconto = string.Empty;
@@ -1615,18 +1594,21 @@ FROM
                     }
 
                     listaRighe.Add(
-                        new ApiordineinserisciRighe(
+                        new RigaInserimentoOrdine(
+                            posizione,
                             (riga.DescrizioneRiga == string.Empty && riga.IDArticolo == string.Empty) ? "-" : riga.DescrizioneRiga,
-                            riga.IDArticolo == string.Empty ? ApiClient.NULL_VALUE : riga.IDArticolo,
+                            riga.IDArticolo == string.Empty ? null : riga.IDArticolo,
                             (int)riga.Quantita,
-                            codiceSconto == string.Empty ? ApiClient.NULL_VALUE : codiceSconto,
-                            ApiClient.NULL_VALUE,
+                            codiceSconto == string.Empty ? null : codiceSconto,
+                            null,
                             riga.IDAliquotaIVA,
                             (float)riga.Prezzo,
-                            riga.Note == string.Empty ? ApiClient.NULL_VALUE : riga.Note,
-                            null
+                            riga.Note == string.Empty ? null : riga.Note,
+                            ApiordineinserisciRighe.TipoMovimentoEnum.Normale
                         )
                     );
+
+                    posizione++;
                 }
 
                 string idAnagraficaDestinatario = string.Empty;
@@ -1658,7 +1640,8 @@ FROM
                     documento.IDOperatoreOrigineDati == string.Empty ? ApiClient.NULL_VALUE : documento.IDOperatoreOrigineDati,
                     ApiClient.NULL_VALUE,
                     documento.Note == string.Empty ? ApiClient.NULL_VALUE : documento.Note,
-                    righe: listaRighe);
+                    righe: listaRighe
+                    );
 
                 // risposta.StatusCode
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using IO.Swagger.Model;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using RestSharp;
 
 namespace IO.Swagger.Client
@@ -27,26 +28,69 @@ namespace IO.Swagger.Client
                 request.RemoveParameter(param);
             }
 
-            System.Diagnostics.Debugger.Break();
+            if (request.Resource.Equals("/api/ordine/inserisci", StringComparison.OrdinalIgnoreCase))
+            {
+                foreach (var param in request.Parameters)
+                {
+                    if (param.Name.Equals("righe", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string stringaArrayJson = "[" + param.Value.ToString() + "]";
+                        foreach (var child in JArray.Parse(stringaArrayJson).Children<JObject>())
+                        {
+                            var a = ApiClient.DeserializeObjectFromJson<RigaInserimentoOrdine>(child.ToString());
+                            foreach (var paramAggiuntivo in a.ToMultiDataParameters())
+                            {
+                                request.Parameters.AddParameter(paramAggiuntivo);
+                            }
+                            //var riga = ApiClient.DeserializeObjectFromJson<RigaInserimentoOrdine>(child.ToString());
+                            //JObject j = JObject.Parse(child.ToString());
+                            //var tokenPosizione = child.GetValue("PosizioneInArray", StringComparison.OrdinalIgnoreCase);
+                            //if (tokenPosizione == null)
+                            //{
+                            //    throw new Exception("Errore rilevamento posizione ApiClientCustomized");
+                            //}
+
+                            //int posizione = tokenPosizione.Value<int>();
+                            //foreach (var chiaveValore in child)
+                            //{
+                            //    if (!chiaveValore.Key.Equals("PosizioneInArray", StringComparison.OrdinalIgnoreCase)
+                            //        && chiaveValore.Value != null)
+                            //    {
+                            //        request.Parameters.AddParameter(new GetOrPostParameter($"righe[{posizione}][{chiaveValore.Key}]", chiaveValore.Value.ToString()));
+                            //    }
+                            //}
+                        }
+                        System.Diagnostics.Debugger.Break();
+
+                        break;
+                    }
+                }
+
+                request.Parameters.RemoveParameter("righe");
+
+            }
         }
 
         partial void InterceptResponse(RestRequest request, RestResponse response)
         {
             var dizionarioHeader = new Dictionary<string, List<string>>();
-            foreach (var header in response.Headers)
+            if (response.Headers != null)
             {
-                if (!dizionarioHeader.ContainsKey(header.Name))
-                    dizionarioHeader[header.Name] = new List<string>();
-                dizionarioHeader[header.Name].Add(header.Value);
-            }
+                foreach (var header in response.Headers)
+                {
+                    if (!dizionarioHeader.ContainsKey(header.Name))
+                        dizionarioHeader[header.Name] = new List<string>();
+                    dizionarioHeader[header.Name].Add(header.Value);
+                }
 
-            var lista = new List<HeaderParameter>();
-            foreach (var headerConValori in dizionarioHeader)
-            {
-                lista.Add(new HeaderParameter(headerConValori.Key, string.Join(",", headerConValori.Value)));
-            }
+                var lista = new List<HeaderParameter>();
+                foreach (var headerConValori in dizionarioHeader)
+                {
+                    lista.Add(new HeaderParameter(headerConValori.Key, string.Join(",", headerConValori.Value)));
+                }
 
-            response.Headers = new ReadOnlyCollection<HeaderParameter>(lista);
+                response.Headers = new ReadOnlyCollection<HeaderParameter>(lista);
+            }
         }
 
         public static T DeserializeObjectFromJson<T>(string stringaJson)
