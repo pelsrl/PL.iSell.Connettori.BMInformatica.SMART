@@ -38,15 +38,8 @@ namespace PL.iSell.Connettori.BMInformatica.SMART
 
         private const string ID_GRUPPO_ARTICOLI_SUPERIORE_MARCHE = "Marche";
         private const string ID_GRUPPO_ARTICOLI_SUPERIORE_GRUPPO_MERCEOLOGICO = "GruppoMerceologico";
-
-        protected const string ID_TIPO_DOCUMENTO_ORDINE_STORICO = "ORD";
-
-        protected const string ID_TIPO_DOCUMENTO_FATTURA_IMMEDIATA = "FT_IMM";
-        protected const string ID_TIPO_DOCUMENTO_FATTURA_DIFFERITA = "FT_DIF";
-        protected const string ID_TIPO_DOCUMENTO_FATTURA_ACCOMPAGNATORIA = "FT_ACC";
-        protected const string ID_TIPO_DOCUMENTO_NOTA_CREDITO = "NC";
-        protected const string ID_TIPO_DOCUMENTO_DDT = "DDT";
-        protected const string ID_TIPO_DOCUMENTO_DDT_FORNITORI = "DDT_FOR";
+        
+        protected const string ID_TIPO_DOCUMENTO_ORDINE = "ORDV";
 
         protected const string ID_CAUSALE_RIGA_DOCUMENTO_VENDITA = "BM_normale";
         protected const string ID_CAUSALE_RIGA_DOCUMENTO_SCONTO_MERCE = "BM_sconto_merce";
@@ -279,10 +272,21 @@ FROM
 
             #region Query Documenti
 
+            this.RegistraQuery("TipiDocumenti", @"
+SELECT
+    CODICE AS IDTipoDocumento,
+    DESCRIZIONE AS DescrizioneTipoDocumento,
+FROM
+    tdo
+", ConnessioneSmart,
+                new ColonnaParametroTabella("IDTipoDocumento", ColonnaParametroTabella.TipiDati.Alfanumerico, "IDTipoDocumento"),
+                new ColonnaParametroTabella("DescrizioneTipoDocumento", ColonnaParametroTabella.TipiDati.Alfanumerico, "DescrizioneTipoDocumento")
+                );
+            
             this.RegistraQuery("Ddt", @"
 SELECT
     dvt.id,
-    TIPO_DOCUMENTO,
+    TDO_CODICE,
     DATA_DOCUMENTO,
     numero_documento,
     CLI_CODICE,
@@ -308,7 +312,7 @@ ON
     dvt.TSM_CODICE_SCONTO = tsm.CODICE
 ", this.ConnessioneSmart,
                 new ColonnaParametroTabella("IDDocumento", ColonnaParametroTabella.TipiDati.NumeroIntero, "id"),
-                new ColonnaParametroTabella("IDTipoDocumento", ColonnaParametroTabella.TipiDati.Alfanumerico, "TIPO_DOCUMENTO"),
+                new ColonnaParametroTabella("IDTipoDocumento", ColonnaParametroTabella.TipiDati.Alfanumerico, "TDO_CODICE"),
                 new ColonnaParametroTabella("DataDocumento", ColonnaParametroTabella.TipiDati.Alfanumerico, "DATA_DOCUMENTO"),
                 new ColonnaParametroTabella("NumeroDocumento", ColonnaParametroTabella.TipiDati.NumeroIntero, "numero_documento"),
                 new ColonnaParametroTabella("IDAnagraficaIntestatario", ColonnaParametroTabella.TipiDati.Alfanumerico, "CLI_CODICE"),
@@ -374,7 +378,7 @@ ON
             this.RegistraQuery("Fatture", @"
 SELECT
     id,
-    TIPO_DOCUMENTO,
+    TDO_CODICE,
     DATA_DOCUMENTO,
     numero_documento,
     CLI_CODICE,
@@ -396,7 +400,7 @@ FROM
     fvt
 ", this.ConnessioneSmart,
                 new ColonnaParametroTabella("IDDocumento", ColonnaParametroTabella.TipiDati.Alfanumerico, "id"),
-                new ColonnaParametroTabella("IDTipoDocumento", ColonnaParametroTabella.TipiDati.Alfanumerico, "TIPO_DOCUMENTO"),
+                new ColonnaParametroTabella("IDTipoDocumento", ColonnaParametroTabella.TipiDati.Alfanumerico, "TDO_CODICE"),
                 new ColonnaParametroTabella("DataDocumento", ColonnaParametroTabella.TipiDati.Alfanumerico, "DATA_DOCUMENTO"),
                 new ColonnaParametroTabella("NumeroDocumento", ColonnaParametroTabella.TipiDati.NumeroIntero, "numero_documento"),
                 new ColonnaParametroTabella("IDAnagraficaIntestatario", ColonnaParametroTabella.TipiDati.Alfanumerico, "CLI_CODICE"),
@@ -1096,6 +1100,37 @@ FROM
                 IdentificatoreVisualeTipoCausale = IdentificatoreVisuale.Verde
             });
 
+            this.ImpostaInformazioniElaborazione("Caricamento dati tipi documenti");
+            using (TabellaDati datiTipiDocumenti = this.RilevaTabellaDatiDaQuery("TipiDocumenti"))
+            {
+                this.ImpostaInformazioniElaborazione("Caricamento dati tipi documenti", datiTipiDocumenti.NumeroRighe);
+                for (int i = 0; i < datiTipiDocumenti.NumeroRighe; i++)
+                {
+                    this.AvanzaStatoElaborazione();
+
+                    var tipoDocumento = new RigaDatiTipiDocumenti
+                    {
+                        IDTipoDocumento = datiTipiDocumenti[i, "IDTipoDocumento"].ToTrimmedString(),
+                        DescrizioneTipoDocumento = datiTipiDocumenti[i, "DescrizioneTipoDocumento"].ToTrimmedString(),
+                        GestioneAnagraficaIntestatario = GestioneAnagraficaIntestatario.Gestito,
+                        GestioneAnagraficaDestinatario = GestioneAnagraficaDestinatario.Gestito,
+                        GestioneAnagraficaRiferimento = GestioneAnagraficaRiferimento.Gestito,
+                        GestioneNote = GestioneNote.Gestito,
+                        GestionePagamento = GestionePagamento.Gestito,
+                        GestioneListino = GestioneListino.Gestito,
+                        GestioneLotti = Utilita.ValoriTabelle.TipiDocumenti.GestioneLotti.Gestito,
+                        AttivitaPassivita = (Utilita.ValoriTabelle.TipiDocumenti.AttivitaPassivita)AttivitaPassivita.Attivo,
+                        GestioneDeposito = GestioneDeposito.Gestito,
+                        GestioneScontoChiusura = GestioneScontoChiusura.Gestito,
+                        GestioneVariantiArticoli = 1,
+                        GestioneDataConsegna = GestioneDataConsegna.Gestito,
+                        GestioneTipoSpedizione = GestioneTipoSpedizione.Gestito,
+                        GestioneVettore = GestioneVettore.Gestito
+                    };
+                    this.ConnessioneiSellOUT.EseguiInserimentoRigaDatiiSell(tipoDocumento);
+                }
+            }
+
             var dizionarioTabellaTsm = this.PrelevaListaSconti();
             this.ImpostaInformazioniElaborazione("Caricamento dati fatture");
             using (TabellaDati datiTestataFatture = this.RilevaTabellaDatiDaQuery("Fatture"))
@@ -1121,27 +1156,10 @@ FROM
                     if (listaScontiTestataDocumento.Count > 8)
                         this.RegistraLog($"Numero sconti maggiore di 8 per testata fattura. IDDocumento: {idDocumento}", TipiLog.Avviso);
 
-                    string idTipoDocumento = "";
-                    switch (datiTestataFatture[i, "IDTipoDocumento"].ToTrimmedString())
-                    {
-                        case "fattura accompagnatoria":
-                            idTipoDocumento = ID_TIPO_DOCUMENTO_FATTURA_ACCOMPAGNATORIA;
-                            break;
-                        case "fattura differita":
-                            idTipoDocumento = ID_TIPO_DOCUMENTO_FATTURA_DIFFERITA;
-                            break;
-                        case "fattura immediata":
-                            idTipoDocumento = ID_TIPO_DOCUMENTO_FATTURA_IMMEDIATA;
-                            break;
-                        case "nota credito":
-                            idTipoDocumento = ID_TIPO_DOCUMENTO_NOTA_CREDITO;
-                            break;
-                    }
-
                     var testataFatture = new RigaDatiDocumenti
                     {
                         IDDocumento = "FATT_" + datiTestataFatture[i, "NumeroDocumento"].ToInt() + "_" + datiTestataFatture[i, "Progressivo"].ToInt(),
-                        IDTipoDocumento = idTipoDocumento,
+                        IDTipoDocumento = datiTestataFatture[i, "TipoDocumento"].ToTrimmedString(),
                         DataDocumento = datiTestataFatture[i, "DataDocumento"].ToTrimmedString(),
                         NumeroDocumento = datiTestataFatture[i, "NumeroDocumento"].ToInt(),
                         IDAnagraficaIntestatario = datiTestataFatture[i, "IDAnagraficaIntestatario"].ToTrimmedString(),
@@ -1258,21 +1276,10 @@ FROM
                     if (this.InterruzioneElaborazioneInCorso)
                         return new RisultatoConDescrizione(true);
 
-                    var idTipoDocumento = "";
-                    switch (datiTestataDdt[i, "IDTipoDocumento"].ToTrimmedString())
-                    {
-                        case "ddt":
-                            idTipoDocumento = ID_TIPO_DOCUMENTO_DDT;
-                            break;
-                        case "ddt fornitori":
-                            idTipoDocumento = ID_TIPO_DOCUMENTO_DDT_FORNITORI;
-                            break;
-                    }
-
                     var testataDdt = new RigaDatiDocumenti
                     {
                         IDDocumento = "DDT_" + datiTestataDdt[i, "NumeroDocumento"] + "_" + datiTestataDdt[i, "Progressivo"].ToInt(),
-                        IDTipoDocumento = idTipoDocumento,
+                        IDTipoDocumento = datiTestataDdt[i, "IDTipoDocumento"].ToTrimmedString(),
                         DataDocumento = datiTestataDdt[i, "DataDocumento"].ToTrimmedString(),
                         NumeroDocumento = datiTestataDdt[i, "NumeroDocumento"].ToInt(),
                         IDAnagraficaIntestatario = datiTestataDdt[i, "IDAnagraficaIntestatario"].ToTrimmedString(),
@@ -1367,18 +1374,7 @@ FROM
                     };
                     this.ConnessioneiSellOUT.EseguiInserimentoRigaDatiiSell(righeDdt);
                 }
-
-                foreach (KeyValuePair<string, string> informazioniTipoDocumento in new Dictionary<string, string>
-                         {
-                             { ID_TIPO_DOCUMENTO_FATTURA_IMMEDIATA, "Fattura immediata" },
-                             { ID_TIPO_DOCUMENTO_FATTURA_DIFFERITA, "Fattura differita" },
-                             { ID_TIPO_DOCUMENTO_FATTURA_ACCOMPAGNATORIA, "Fattura accompagnatoria" },
-                             { ID_TIPO_DOCUMENTO_NOTA_CREDITO, "Nota credito" },
-                             { ID_TIPO_DOCUMENTO_DDT, "Ddt" },
-                             { ID_TIPO_DOCUMENTO_DDT_FORNITORI, "Ddt fornitori" },
-                             { ID_TIPO_DOCUMENTO_ORDINE_STORICO, "Ordine" }
-                         })
-
+#error Aggiunto TipiDocumento da tabella tdo
                     this.ConnessioneiSellOUT.EseguiInserimentoRigaDatiiSell(new RigaDatiTipiDocumenti
                     {
                         IDTipoDocumento =
@@ -1642,10 +1638,9 @@ FROM
 
 #warning Manca da gestire gli sconti chiusura, che attualmente non gestiamo poichè manca la generazione di nuovi codici
                 var risposta = apiInstance.ApiOrdineInserisciPostWithHttpInfo(
-                    
                     documento.IDAnagraficaIntestatario,
                     documento.IDDeposito == string.Empty ? ApiClient.NULL_VALUE : documento.IDDeposito,
-                    documento.IDTipoDocumento,
+                    ID_TIPO_DOCUMENTO_ORDINE,
                     idAnagraficaDestinatario == string.Empty ? ApiClient.NULL_VALUE : idAnagraficaDestinatario,
                     ApiClient.NULL_VALUE,
                     PL.Utilita.FunzioniDati.ConvertiStringaDataYYYYMMDDHHMMSSMMInData(documento.DataDocumento).ToString("dd-mm-yyyy"),
@@ -1663,7 +1658,7 @@ FROM
                     documento.IDOperatoreOrigineDati == string.Empty ? ApiClient.NULL_VALUE : documento.IDOperatoreOrigineDati,
                     ApiClient.NULL_VALUE,
                     documento.Note == string.Empty ? ApiClient.NULL_VALUE : documento.Note,
-                    listaRighe);
+                    righe: listaRighe);
 
                 // risposta.StatusCode
 
