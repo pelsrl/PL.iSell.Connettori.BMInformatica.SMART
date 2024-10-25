@@ -38,7 +38,7 @@ namespace PL.iSell.Connettori.BMInformatica.SMART
 
         private const string ID_GRUPPO_ARTICOLI_SUPERIORE_MARCHE = "Marche";
         private const string ID_GRUPPO_ARTICOLI_SUPERIORE_GRUPPO_MERCEOLOGICO = "GruppoMerceologico";
-        
+
         protected const string ID_TIPO_DOCUMENTO_ORDINE = "ORDV";
 
         protected const string ID_CAUSALE_RIGA_DOCUMENTO_VENDITA = "BM_normale";
@@ -275,14 +275,14 @@ FROM
             this.RegistraQuery("TipiDocumenti", @"
 SELECT
     CODICE AS IDTipoDocumento,
-    DESCRIZIONE AS DescrizioneTipoDocumento,
+    DESCRIZIONE AS DescrizioneTipoDocumento
 FROM
     tdo
 ", ConnessioneSmart,
                 new ColonnaParametroTabella("IDTipoDocumento", ColonnaParametroTabella.TipiDati.Alfanumerico, "IDTipoDocumento"),
                 new ColonnaParametroTabella("DescrizioneTipoDocumento", ColonnaParametroTabella.TipiDati.Alfanumerico, "DescrizioneTipoDocumento")
-                );
-            
+            );
+
             this.RegistraQuery("Ddt", @"
 SELECT
     dvt.id,
@@ -1159,7 +1159,7 @@ FROM
                     var testataFatture = new RigaDatiDocumenti
                     {
                         IDDocumento = "FATT_" + datiTestataFatture[i, "NumeroDocumento"].ToInt() + "_" + datiTestataFatture[i, "Progressivo"].ToInt(),
-                        IDTipoDocumento = datiTestataFatture[i, "TipoDocumento"].ToTrimmedString(),
+                        IDTipoDocumento = datiTestataFatture[i, "IDTipoDocumento"].ToTrimmedString(),
                         DataDocumento = datiTestataFatture[i, "DataDocumento"].ToTrimmedString(),
                         NumeroDocumento = datiTestataFatture[i, "NumeroDocumento"].ToInt(),
                         IDAnagraficaIntestatario = datiTestataFatture[i, "IDAnagraficaIntestatario"].ToTrimmedString(),
@@ -1538,7 +1538,7 @@ FROM
             var dizionarioTabellaScontiStringaConCodici = new Dictionary<string, InsiemeInsensitive>(StringComparer.OrdinalIgnoreCase);
             foreach (var rigaScontoTsm in this.PrelevaListaSconti())
             {
-                string stringaSconti = string.Join("+", rigaScontoTsm.Value.Select(x=> x.ToString("0.00")));
+                string stringaSconti = string.Join("+", rigaScontoTsm.Value.Select(x => x.ToString("0.00")));
                 if (!dizionarioTabellaScontiStringaConCodici.ContainsKey(stringaSconti))
                     dizionarioTabellaScontiStringaConCodici[stringaSconti] = new InsiemeInsensitive();
 
@@ -1549,7 +1549,7 @@ FROM
             {
                 string codiceScontoAnagrafica;
                 var qScontoPerAnagrafica = new CompilatoreQueryDiSelezione("cli");
-                qScontoPerAnagrafica.Filtro.AggiungiElementoFiltroStandard("CODICE",OperatoriDiConfronto.Uguale, documento.IDAnagraficaIntestatario);
+                qScontoPerAnagrafica.Filtro.AggiungiElementoFiltroStandard("CODICE", OperatoriDiConfronto.Uguale, documento.IDAnagraficaIntestatario);
                 using (TabellaDati datiAnagraficaSconto = this.ConnessioneSmart.EseguiSelezione(qScontoPerAnagrafica))
                 {
                     codiceScontoAnagrafica = datiAnagraficaSconto.NumeroRighe > 0 ? datiAnagraficaSconto[0, "TSM_CODICE"].ToTrimmedString() : string.Empty;
@@ -1626,6 +1626,7 @@ FROM
                     idAnagraficaDestinatario == string.Empty ? ApiClient.NULL_VALUE : idAnagraficaDestinatario,
                     ApiClient.NULL_VALUE,
                     PL.Utilita.FunzioniDati.ConvertiStringaDataYYYYMMDDHHMMSSMMInData(documento.DataDocumento).ToString("dd-mm-yyyy"),
+#error Data di consegna. "dd-mm-yyyy" Deve essere uguale o successiva alladata del documento. Se la data di consegna è precedente alla data deldocumento, verrà generato un errore.
                     PL.Utilita.FunzioniDati.ConvertiStringaDataYYYYMMDDHHMMSSMMInData(documento.DataConsegna).ToString("dd-mm-yyyy"),
                     ApiClient.NULL_VALUE,
                     ApiClient.NULL_VALUE,
@@ -1641,7 +1642,7 @@ FROM
                     ApiClient.NULL_VALUE,
                     documento.Note == string.Empty ? ApiClient.NULL_VALUE : documento.Note,
                     righe: listaRighe
-                    );
+                );
 
                 // risposta.StatusCode
 
