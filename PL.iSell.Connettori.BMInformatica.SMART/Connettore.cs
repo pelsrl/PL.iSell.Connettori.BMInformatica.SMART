@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Management.Instrumentation;
@@ -1618,6 +1619,17 @@ FROM
                     idAnagraficaDestinatario = documento.IDAnagraficaDestinatario.Split('_')[1];
                 }
 
+                var dataConsegna = string.Empty;
+                if (string.IsNullOrWhiteSpace(documento.DataConsegna)
+                    && DateTime.Compare(PL.Utilita.FunzioniDati.ConvertiStringaDataYYYYMMDDHHMMSSMMInData(documento.DataConsegna), PL.Utilita.FunzioniDati.ConvertiStringaDataYYYYMMDDHHMMSSMMInData(documento.DataDocumento)) < 0)
+                {
+                    dataConsegna = PL.Utilita.FunzioniDati.ConvertiStringaDataYYYYMMDDHHMMSSMMInData(documento.DataDocumento).ToString("dd-MM-yyyy");
+                }
+                else
+                {
+                    dataConsegna = PL.Utilita.FunzioniDati.ConvertiStringaDataYYYYMMDDHHMMSSMMInData(documento.DataConsegna).ToString("dd-MM-yyyy");
+                }
+
 #warning Manca da gestire gli sconti chiusura, che attualmente non gestiamo poichè manca la generazione di nuovi codici
                 var risposta = apiInstance.ApiOrdineInserisciPostWithHttpInfo(
                     documento.IDAnagraficaIntestatario,
@@ -1625,9 +1637,8 @@ FROM
                     ID_TIPO_DOCUMENTO_ORDINE,
                     idAnagraficaDestinatario == string.Empty ? ApiClient.NULL_VALUE : idAnagraficaDestinatario,
                     ApiClient.NULL_VALUE,
-                    PL.Utilita.FunzioniDati.ConvertiStringaDataYYYYMMDDHHMMSSMMInData(documento.DataDocumento).ToString("dd-mm-yyyy"),
-#error Data di consegna. "dd-mm-yyyy" Deve essere uguale o successiva alladata del documento. Se la data di consegna è precedente alla data deldocumento, verrà generato un errore.
-                    PL.Utilita.FunzioniDati.ConvertiStringaDataYYYYMMDDHHMMSSMMInData(documento.DataConsegna).ToString("dd-mm-yyyy"),
+                    PL.Utilita.FunzioniDati.ConvertiStringaDataYYYYMMDDHHMMSSMMInData(documento.DataDocumento).ToString("dd-MM-yyyy"),
+                    dataConsegna,
                     ApiClient.NULL_VALUE,
                     ApiClient.NULL_VALUE,
                     ApiClient.NULL_VALUE,
