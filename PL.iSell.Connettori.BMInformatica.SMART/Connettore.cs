@@ -229,7 +229,8 @@ SELECT
     var_codice,
     TMR_CODICE,
     TGM_CODICE,
-    OBSOLETO
+    OBSOLETO,
+    QUANTITA_COLLO
 FROM
     art
 WHERE
@@ -350,13 +351,18 @@ SELECT
     dvr.DATA_CONSEGNA,
     dvr.LOTTO,
     dvr.NOTE,
-    dvr.PROGRESSIVO
+    dvr.PROGRESSIVO,
+    art.QUANTITA_COLLO
 FROM
     dvr
 INNER JOIN
     dvt
 ON
     dvr.PROGRESSIVO = dvt.PROGRESSIVO
+INNER JOIN
+    art
+ON
+    dvr.ART_CODICE = art.codice
 ", this.ConnessioneSmart,
                 new ColonnaParametroTabella("IDRigaDocumento", ColonnaParametroTabella.TipiDati.Alfanumerico, "id"),
                 new ColonnaParametroTabella("IDDocumento", ColonnaParametroTabella.TipiDati.Alfanumerico, "numero_documento"),
@@ -374,7 +380,8 @@ ON
                 new ColonnaParametroTabella("DataConsegna", ColonnaParametroTabella.TipiDati.Alfanumerico, "DATA_CONSEGNA"),
                 new ColonnaParametroTabella("IDLotto", ColonnaParametroTabella.TipiDati.Alfanumerico, "LOTTO"),
                 new ColonnaParametroTabella("Note", ColonnaParametroTabella.TipiDati.Alfanumerico, "NOTE"),
-                new ColonnaParametroTabella("Progressivo", ColonnaParametroTabella.TipiDati.NumeroIntero, "PROGRESSIVO")
+                new ColonnaParametroTabella("Progressivo", ColonnaParametroTabella.TipiDati.NumeroIntero, "PROGRESSIVO"),
+                new ColonnaParametroTabella("ValoreMultiplo", ColonnaParametroTabella.TipiDati.NumeroDecimale, "QUANTITA_COLLO")
             );
             this.RegistraQuery("Fatture", @"
 SELECT
@@ -439,13 +446,18 @@ SELECT
     fvr.DATA_CONSEGNA,
     fvr.LOTTO,
     fvr.NOTE,
-    fvr.PROGRESSIVO
+    fvr.PROGRESSIVO,
+    art.QUANTITA_COLLO
 FROM
     fvr
 INNER JOIN
     fvt
 ON
     fvr.PROGRESSIVO = fvt.PROGRESSIVO
+INNER JOIN
+    art
+ON
+    fvr.ART_CODICE = art.codice
 ", this.ConnessioneSmart,
                 new ColonnaParametroTabella("IDRigaDocumento", ColonnaParametroTabella.TipiDati.Alfanumerico, "id"),
                 new ColonnaParametroTabella("IDDocumento", ColonnaParametroTabella.TipiDati.Alfanumerico, "numero_documento"),
@@ -463,7 +475,8 @@ ON
                 new ColonnaParametroTabella("DataConsegna", ColonnaParametroTabella.TipiDati.Alfanumerico, "DATA_CONSEGNA"),
                 new ColonnaParametroTabella("IDLotto", ColonnaParametroTabella.TipiDati.Alfanumerico, "LOTTO"),
                 new ColonnaParametroTabella("Note", ColonnaParametroTabella.TipiDati.Alfanumerico, "NOTE"),
-                new ColonnaParametroTabella("Progressivo", ColonnaParametroTabella.TipiDati.NumeroIntero, "PROGRESSIVO")
+                new ColonnaParametroTabella("Progressivo", ColonnaParametroTabella.TipiDati.NumeroIntero, "PROGRESSIVO"),
+                new ColonnaParametroTabella("ValoreMultiplo", ColonnaParametroTabella.TipiDati.NumeroDecimale, "QUANTITA_COLLO")
             );
 
             #endregion
@@ -1161,7 +1174,7 @@ FROM
                     {
                         IDDocumento = "FATT_" + datiTestataFatture[i, "NumeroDocumento"].ToInt() + "_" + datiTestataFatture[i, "Progressivo"].ToInt(),
                         IDTipoDocumento = datiTestataFatture[i, "IDTipoDocumento"].ToTrimmedString(),
-                        DataDocumento = datiTestataFatture[i, "DataDocumento"].ToTrimmedString(),
+                        DataDocumento = DateTime.ParseExact(datiTestataFatture[i, "DataDocumento"].ToTrimmedString(), "dd/MM/yyyy", CultureInfo.InvariantCulture).ToStringaYYYYMMDD(),
                         NumeroDocumento = datiTestataFatture[i, "NumeroDocumento"].ToInt(),
                         IDAnagraficaIntestatario = datiTestataFatture[i, "IDAnagraficaIntestatario"].ToTrimmedString(),
                         IDValuta = datiTestataFatture[i, "IDValuta"].ToTrimmedString(),
@@ -1219,6 +1232,15 @@ FROM
                         case "sconto merce":
                             idCausaleRigaDocumento = ID_CAUSALE_RIGA_DOCUMENTO_SCONTO_MERCE;
                             break;
+                    }
+
+                    if (datiRigheFatture[i, "ValoreMultiplo"].ToDecimal() != 0)
+                    {
+                        this.ConnessioneiSellOUT.AccodaRegistrazioneImpostazioneApplicazioneISell(
+                            "ValoreMultiploBaseQuantitaRigaDocumento",
+                            "IDArticolo=" + datiRigheFatture[i, "IDArticolo"].ToTrimmedString(),
+                            datiRigheFatture[i, "ValoreMultiplo"].ToTrimmedString()
+                        );
                     }
 
                     var righeFatture = new RigaDatiRigheDocumenti
@@ -1281,7 +1303,7 @@ FROM
                     {
                         IDDocumento = "DDT_" + datiTestataDdt[i, "NumeroDocumento"] + "_" + datiTestataDdt[i, "Progressivo"].ToInt(),
                         IDTipoDocumento = datiTestataDdt[i, "IDTipoDocumento"].ToTrimmedString(),
-                        DataDocumento = datiTestataDdt[i, "DataDocumento"].ToTrimmedString(),
+                        DataDocumento = DateTime.ParseExact(datiTestataDdt[i, "DataDocumento"].ToTrimmedString(), "dd/MM/yyyy", CultureInfo.InvariantCulture).ToStringaYYYYMMDD(),
                         NumeroDocumento = datiTestataDdt[i, "NumeroDocumento"].ToInt(),
                         IDAnagraficaIntestatario = datiTestataDdt[i, "IDAnagraficaIntestatario"].ToTrimmedString(),
                         IDValuta = datiTestataDdt[i, "IDValuta"].ToTrimmedString(),
@@ -1347,6 +1369,15 @@ FROM
                         case "sconto merce":
                             idCausaleRigaDocumento = ID_CAUSALE_RIGA_DOCUMENTO_SCONTO_MERCE;
                             break;
+                    }
+
+                    if (datiRigheDdt[i, "ValoreMultiplo"].ToDecimal() != 0)
+                    {
+                        this.ConnessioneiSellOUT.AccodaRegistrazioneImpostazioneApplicazioneISell(
+                            "ValoreMultiploBaseQuantitaRigaDocumento",
+                            "IDArticolo=" + datiRigheDdt[i, "IDArticolo"].ToTrimmedString(),
+                            datiRigheDdt[i, "ValoreMultiplo"].ToTrimmedString()
+                        );
                     }
 
                     var righeDdt = new RigaDatiRigheDocumenti
