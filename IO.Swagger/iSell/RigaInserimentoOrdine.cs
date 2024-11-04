@@ -57,13 +57,16 @@ namespace IO.Swagger.Client
 
             VerificaEAggiungiCampo("descrizione", this.Descrizione);
             VerificaEAggiungiCampo("artCodice", this.ArtCodice);
-            VerificaEAggiungiCampo("quantita", this.Quantita.ToString());
+            if(this.Quantita != null)
+                VerificaEAggiungiCampo("quantita", this.Quantita.ToString());
             VerificaEAggiungiCampo("tsmCodice", this.TsmCodice);
             VerificaEAggiungiCampo("tsmCodiceArt", this.TsmCodiceArt);
             VerificaEAggiungiCampo("tivCodice", this.TivCodice);
-            VerificaEAggiungiCampo("prezzo", ((decimal)this.Prezzo).ToString(_cultureInfoPerGestionePrezzi));
+            if(this.Prezzo != null)
+                VerificaEAggiungiCampo("prezzo", ((decimal)this.Prezzo).ToString(_cultureInfoPerGestionePrezzi));
             VerificaEAggiungiCampo("note", this.Note);
-            VerificaEAggiungiCampo("tipoMovimento", (Enum.GetName(typeof(TipoMovimentoEnum), this.TipoMovimento)).ToLower().ToString());
+            if(this.TipoMovimento != null)
+                VerificaEAggiungiCampo("tipoMovimento", (Enum.GetName(typeof(TipoMovimentoEnum), this.TipoMovimento)).ToLower().ToString());
 
             return daTornare;
         }

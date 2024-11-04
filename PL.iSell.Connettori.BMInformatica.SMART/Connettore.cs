@@ -881,7 +881,7 @@ FROM
                     if (this.InterruzioneElaborazioneInCorso)
                         return new RisultatoConDescrizione(true);
 
-                    var gruppiArticoli = new RigaDatiGruppiArticoli()
+                    var gruppiArticoli = new RigaDatiGruppiArticoli
                     {
                         IDGruppoArticoli = PREFISSO_GRUPPI_ARTICOLI_MARCHE + datiMarcheArticoli[i, "IDGruppoArticoli"].ToTrimmedString(),
                         DescrizioneGruppoArticoli = datiMarcheArticoli[i, "DescrizioneGruppoArticoli"].ToTrimmedString()
@@ -1624,13 +1624,13 @@ FROM
                             }
                         }
                     }
-
+                    
                     listaRighe.Add(
                         new RigaInserimentoOrdine(
                             posizione,
                             (riga.DescrizioneRiga == string.Empty && riga.IDArticolo == string.Empty) ? "-" : riga.DescrizioneRiga,
                             riga.IDArticolo == string.Empty ? null : riga.IDArticolo,
-                            (int)riga.Quantita,
+                            riga.IDArticolo == string.Empty ? null : (int?)riga.Quantita,
                             codiceSconto == string.Empty ? null : codiceSconto,
                             null,
                             riga.IDAliquotaIVA,
@@ -1661,30 +1661,39 @@ FROM
                     dataConsegna = PL.Utilita.FunzioniDati.ConvertiStringaDataYYYYMMDDHHMMSSMMInData(documento.DataConsegna).ToString("dd-MM-yyyy");
                 }
 
+                ApiResponse<InlineResponse2005>? risposta;
+
+                try
+                {
 #warning Manca da gestire gli sconti chiusura, che attualmente non gestiamo poichè manca la generazione di nuovi codici
-                var risposta = apiInstance.ApiOrdineInserisciPostWithHttpInfo(
-                    documento.IDAnagraficaIntestatario,
-                    documento.IDDeposito == string.Empty ? ApiClient.NULL_VALUE : documento.IDDeposito,
-                    ID_TIPO_DOCUMENTO_ORDINE,
-                    idAnagraficaDestinatario == string.Empty ? ApiClient.NULL_VALUE : idAnagraficaDestinatario,
-                    ApiClient.NULL_VALUE,
-                    PL.Utilita.FunzioniDati.ConvertiStringaDataYYYYMMDDHHMMSSMMInData(documento.DataDocumento).ToString("dd-MM-yyyy"),
-                    dataConsegna,
-                    ApiClient.NULL_VALUE,
-                    ApiClient.NULL_VALUE,
-                    ApiClient.NULL_VALUE,
-                    ApiClient.NULL_VALUE,
-                    ApiClient.NULL_VALUE,
-                    ApiClient.NULL_VALUE,
-                    ApiClient.NULL_VALUE,
-                    documento.IDPagamento == string.Empty ? ApiClient.NULL_VALUE : documento.IDPagamento,
-                    documento.IDListino == string.Empty ? ApiClient.NULL_VALUE : documento.IDListino,
-                    ApiClient.NULL_VALUE,
-                    documento.IDOperatoreOrigineDati == string.Empty ? ApiClient.NULL_VALUE : documento.IDOperatoreOrigineDati,
-                    ApiClient.NULL_VALUE,
-                    documento.Note == string.Empty ? ApiClient.NULL_VALUE : documento.Note,
-                    righe: listaRighe
-                );
+                    risposta = apiInstance.ApiOrdineInserisciPostWithHttpInfo(
+                        documento.IDAnagraficaIntestatario,
+                        documento.IDDeposito == string.Empty ? ApiClient.NULL_VALUE : documento.IDDeposito,
+                        ID_TIPO_DOCUMENTO_ORDINE,
+                        idAnagraficaDestinatario == string.Empty ? ApiClient.NULL_VALUE : idAnagraficaDestinatario,
+                        ApiClient.NULL_VALUE,
+                        PL.Utilita.FunzioniDati.ConvertiStringaDataYYYYMMDDHHMMSSMMInData(documento.DataDocumento).ToString("dd-MM-yyyy"),
+                        dataConsegna,
+                        ApiClient.NULL_VALUE,
+                        ApiClient.NULL_VALUE,
+                        ApiClient.NULL_VALUE,
+                        ApiClient.NULL_VALUE,
+                        ApiClient.NULL_VALUE,
+                        ApiClient.NULL_VALUE,
+                        ApiClient.NULL_VALUE,
+                        documento.IDPagamento == string.Empty ? ApiClient.NULL_VALUE : documento.IDPagamento,
+                        documento.IDListino == string.Empty ? ApiClient.NULL_VALUE : documento.IDListino,
+                        ApiClient.NULL_VALUE,
+                        documento.IDOperatoreOrigineDati == string.Empty ? ApiClient.NULL_VALUE : documento.IDOperatoreOrigineDati,
+                        ApiClient.NULL_VALUE,
+                        documento.Note == string.Empty ? ApiClient.NULL_VALUE : documento.Note,
+                        righe: listaRighe
+                    );
+                }
+                catch (Exception ex)
+                {
+                    return new RisultatoElaborazione(false, ex.ToString());
+                }
 
                 // risposta.StatusCode
 
