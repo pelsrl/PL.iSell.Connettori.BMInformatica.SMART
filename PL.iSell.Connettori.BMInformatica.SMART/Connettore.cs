@@ -33,6 +33,7 @@ namespace PL.iSell.Connettori.BMInformatica.SMART
     public class Connettore : PL.iSell.Connettori.Connettore
     {
         #region Costanti
+        protected const string PARAMETRO_NumeroMesiStorico = "NumeroMesiStorico";
 
         private const string PREFISSO_GRUPPI_ARTICOLI_MARCHE = "ISELL_GRP_ART_MARCHE\\";
         private const string PREFISSO_GRUPPI_ARTICOLI_CATEGORIE_MERCEOLOGICHE = "ISELL_GRP_ART_CATEGORIE_MERCEOLOGICHE\\";
@@ -116,6 +117,13 @@ namespace PL.iSell.Connettori.BMInformatica.SMART
                     true
                 )
             );
+
+            var parametroDocumeti = this.NuovoGruppoParametri("Documenti");
+            parametroDocumeti.AggiungiParametri(new ParametroNumeroIntero(
+                PARAMETRO_NumeroMesiStorico,
+                "Mostra documenti emessi nel periodo di mesi imposato",
+                "",
+                12));
 
             #region Query Anagrafiche
 
@@ -312,6 +320,8 @@ LEFT JOIN
     tsm
 ON
     dvt.TSM_CODICE_SCONTO = tsm.CODICE
+WHERE
+    DATA_DOCUMENTO > DATE_SUB(CURDATE(),INTERVAL %NumeroMesiStorico% MONTH)
 ", this.ConnessioneSmart,
                 new ColonnaParametroTabella("IDDocumento", ColonnaParametroTabella.TipiDati.NumeroIntero, "id"),
                 new ColonnaParametroTabella("IDTipoDocumento", ColonnaParametroTabella.TipiDati.Alfanumerico, "TDO_CODICE"),
@@ -363,6 +373,8 @@ INNER JOIN
     art
 ON
     dvr.ART_CODICE = art.codice
+WHERE
+    dvt.DATA_DOCUMENTO > DATE_SUB(CURDATE(),INTERVAL %NumeroMesiStorico% MONTH)
 ", this.ConnessioneSmart,
                 new ColonnaParametroTabella("IDRigaDocumento", ColonnaParametroTabella.TipiDati.Alfanumerico, "id"),
                 new ColonnaParametroTabella("IDDocumento", ColonnaParametroTabella.TipiDati.Alfanumerico, "numero_documento"),
@@ -406,6 +418,8 @@ SELECT
     PROGRESSIVO
 FROM
     fvt
+WHERE
+    DATA_DOCUMENTO > DATE_SUB(CURDATE(),INTERVAL %NumeroMesiStorico% MONTH)
 ", this.ConnessioneSmart,
                 new ColonnaParametroTabella("IDDocumento", ColonnaParametroTabella.TipiDati.Alfanumerico, "id"),
                 new ColonnaParametroTabella("IDTipoDocumento", ColonnaParametroTabella.TipiDati.Alfanumerico, "TDO_CODICE"),
@@ -458,6 +472,8 @@ INNER JOIN
     art
 ON
     fvr.ART_CODICE = art.codice
+WHERE
+    fvt.DATA_DOCUMENTO > DATE_SUB(CURDATE(),INTERVAL %NumeroMesiStorico% MONTH)
 ", this.ConnessioneSmart,
                 new ColonnaParametroTabella("IDRigaDocumento", ColonnaParametroTabella.TipiDati.Alfanumerico, "id"),
                 new ColonnaParametroTabella("IDDocumento", ColonnaParametroTabella.TipiDati.Alfanumerico, "numero_documento"),
