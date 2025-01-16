@@ -9,6 +9,7 @@ using System.Management.Instrumentation;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.RegularExpressions;
 using IO.Swagger.Api;
 using IO.Swagger.Client;
 using IO.Swagger.Model;
@@ -33,6 +34,7 @@ namespace PL.iSell.Connettori.BMInformatica.SMART
     public class Connettore : PL.iSell.Connettori.Connettore
     {
         #region Costanti
+
         protected const string PARAMETRO_NumeroMesiStorico = "NumeroMesiStorico";
 
         private const string PREFISSO_GRUPPI_ARTICOLI_MARCHE = "ISELL_GRP_ART_MARCHE\\";
@@ -1647,18 +1649,25 @@ FROM
                             }
                         }
                     }
+
+                    string descrizioneRiga = riga.DescrizioneRiga;
+
+                    static string RemoveSpecialCharacters(string descrizioneRiga)
+                    {
+                        return Regex.Replace(descrizioneRiga,  @"\p{C}+", String.Empty);
+                    }
                     
                     listaRighe.Add(
                         new RigaInserimentoOrdine(
                             posizione,
-                            (riga.DescrizioneRiga == string.Empty && riga.IDArticolo == string.Empty) ? "-" : riga.DescrizioneRiga,
+                            RemoveSpecialCharacters(descrizioneRiga) == string.Empty && riga.IDArticolo == string.Empty ? "-" : RemoveSpecialCharacters(descrizioneRiga),
                             riga.IDArticolo == string.Empty ? null : riga.IDArticolo,
                             riga.IDArticolo == string.Empty ? null : (int?)riga.Quantita,
                             codiceSconto == string.Empty ? null : codiceSconto,
                             null,
                             riga.IDAliquotaIVA,
                             (float)riga.Prezzo,
-                            riga.Note == string.Empty ? null : riga.Note,
+                            RemoveSpecialCharacters(riga.Note) == string.Empty ? null : RemoveSpecialCharacters(riga.Note),
                             ApiordineinserisciRighe.TipoMovimentoEnum.Normale
                         )
                     );
