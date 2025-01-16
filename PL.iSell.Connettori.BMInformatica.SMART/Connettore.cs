@@ -1651,6 +1651,7 @@ FROM
                     }
 
                     string descrizioneRiga = riga.DescrizioneRiga;
+                    string note = riga.Note;
 
                     static string RemoveSpecialCharacters(string descrizioneRiga)
                     {
@@ -1667,7 +1668,7 @@ FROM
                             null,
                             riga.IDAliquotaIVA,
                             (float)riga.Prezzo,
-                            RemoveSpecialCharacters(riga.Note) == string.Empty ? null : RemoveSpecialCharacters(riga.Note),
+                            RemoveSpecialCharacters(note) == string.Empty ? null : RemoveSpecialCharacters(note),
                             ApiordineinserisciRighe.TipoMovimentoEnum.Normale
                         )
                     );
