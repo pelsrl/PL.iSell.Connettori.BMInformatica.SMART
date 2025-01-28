@@ -23,7 +23,7 @@ namespace IO.Swagger.Client
             int posizioneInArray,
             string descrizione = "",
             string artCodice = "",
-            int? quantita = default(int?),
+            float? quantita = default(int?),
             string tsmCodice = "",
             string tsmCodiceArt = "",
             string tivCodice = "",

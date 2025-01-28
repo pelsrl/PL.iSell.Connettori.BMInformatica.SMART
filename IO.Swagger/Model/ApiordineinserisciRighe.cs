@@ -73,7 +73,7 @@ namespace IO.Swagger.Model
         /// <param name="prezzo">Prezzo.</param>
         /// <param name="note">Note.</param>
         /// <param name="tipoMovimento">Tipo di movimento.</param>
-        public ApiordineinserisciRighe(string descrizione = default(string), string artCodice = default(string), int? quantita = default(int?), string tsmCodice = default(string), string tsmCodiceArt = default(string), string tivCodice = default(string), float? prezzo = default(float?), string note = default(string), TipoMovimentoEnum? tipoMovimento = default(TipoMovimentoEnum?))
+        public ApiordineinserisciRighe(string descrizione = default(string), string artCodice = default(string), float? quantita = default(int?), string tsmCodice = default(string), string tsmCodiceArt = default(string), string tivCodice = default(string), float? prezzo = default(float?), string note = default(string), TipoMovimentoEnum? tipoMovimento = default(TipoMovimentoEnum?))
         {
             // to ensure "descrizione" is required (not null)
             if (descrizione == null)
@@ -113,7 +113,7 @@ namespace IO.Swagger.Model
         /// </summary>
         /// <value>Quantità</value>
         [DataMember(Name="quantita", EmitDefaultValue=false)]
-        public int? Quantita { get; set; }
+        public float? Quantita { get; set; }
 
         /// <summary>
         /// Codice sconto

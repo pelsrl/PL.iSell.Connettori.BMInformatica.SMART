@@ -1653,22 +1653,22 @@ FROM
                     string descrizioneRiga = riga.DescrizioneRiga;
                     string note = riga.Note;
 
-                    static string RemoveSpecialCharacters(string descrizioneRiga)
+                    static string RimuoviCaratteriSpeciali(string stringaConCaratteriSpeciali)
                     {
-                        return Regex.Replace(descrizioneRiga,  @"\p{C}+", String.Empty);
+                        return Regex.Replace(stringaConCaratteriSpeciali,  @"\p{C}+", String.Empty);
                     }
                     
                     listaRighe.Add(
                         new RigaInserimentoOrdine(
                             posizione,
-                            RemoveSpecialCharacters(descrizioneRiga) == string.Empty && riga.IDArticolo == string.Empty ? "-" : RemoveSpecialCharacters(descrizioneRiga),
+                            RimuoviCaratteriSpeciali(descrizioneRiga) == string.Empty && riga.IDArticolo == string.Empty ? "-" : RimuoviCaratteriSpeciali(descrizioneRiga),
                             riga.IDArticolo == string.Empty ? null : riga.IDArticolo,
-                            riga.IDArticolo == string.Empty ? null : (int?)riga.Quantita,
+                            riga.IDArticolo == string.Empty ? null : (float?)riga.Quantita,
                             codiceSconto == string.Empty ? null : codiceSconto,
                             null,
                             riga.IDAliquotaIVA,
                             (float)riga.Prezzo,
-                            RemoveSpecialCharacters(note) == string.Empty ? null : RemoveSpecialCharacters(note),
+                            RimuoviCaratteriSpeciali(note) == string.Empty ? null : RimuoviCaratteriSpeciali(note),
                             ApiordineinserisciRighe.TipoMovimentoEnum.Normale
                         )
                     );
@@ -1766,87 +1766,6 @@ FROM
             });
             return string.Join("+", listaSconti.Select(x => x.ToString("0.00")));
         }
-
-        //     var URLApi = this.RilevaValoreParametro("URLApi").ToTrimmedString();
-        //     if (string.IsNullOrWhiteSpace(URLApi))
-        //     {
-        //         return new RisultatoElaborazione(false, "Valore URL Api non impostato");
-        //     }
-        //
-        //     using (HttpClient httpClient = new HttpClient())
-        //     {
-        //         foreach (var documento in documenti)
-        //         {
-        //             try
-        //             {
-        //                 var parametri = new Dictionary<string, string>();
-        //
-        //                 parametri.Add("cliCodice", documento.IDAnagraficaIntestatario);
-        //                 parametri.Add("tmaCodice", documento.IDDeposito);
-        //                 parametri.Add("tdoCodice", documento.IDTipoDocumento);
-        //                 parametri.Add("indCodice", "");
-        //                 parametri.Add("numeroDocumento", documento.NumeroDocumento.ToString());
-        //
-        //                 string dataDocumento = PL.Utilita.FunzioniDati.ConvertiStringaDataYYYYMMDDHHMMSSMMInData(documento.DataDocumento).ToString("dd-mm-yyyy");
-        //                 parametri.Add("dataDocumento", dataDocumento);
-        //
-        //                 string dataConsegna = PL.Utilita.FunzioniDati.ConvertiStringaDataYYYYMMDDHHMMSSMMInData(documento.DataConsegna).ToString("dd-mm-yyyy");
-        //                 parametri.Add("dataConsegna", dataConsegna);
-        //
-        //                 parametri.Add("descrizione1", "");
-        //                 parametri.Add("descrizione2", "");
-        //                 parametri.Add("via", "");
-        //                 parametri.Add("cap", "");
-        //                 parametri.Add("citta", "");
-        //                 parametri.Add("provincia", "");
-        //                 parametri.Add("tvaCodice", documento.IDValuta);
-        //                 parametri.Add("tpaCodice", documento.IDPagamento);
-        //                 parametri.Add("tlvCodice", documento.IDListino);
-        //                 parametri.Add("tsmCodice", "");
-        //                 parametri.Add("tsmCodiceArt", "");
-        //                 parametri.Add("tagCodice", documento.IDOperatoreOrigineDati);
-        //                 parametri.Add("codiceContratto", "");
-        //                 parametri.Add("note", documento.Note);
-        //
-        //                 var numeroRiga = 0;
-        //                 foreach (var riga in documento.RigheDocumento)
-        //                 {
-        //                     parametri.Add($"righe[{numeroRiga}].descrizione", riga.DescrizioneRiga);
-        //                     parametri.Add($"righe[{numeroRiga}].artCodice", riga.IDArticolo);
-        //                     parametri.Add($"righe[{numeroRiga}].quantita", riga.Quantita.ToString());
-        //                     parametri.Add($"righe[{numeroRiga}].tsmCodice", "");
-        //                     parametri.Add($"righe[{numeroRiga}].tsmCodiceArt", "");
-        //                     parametri.Add($"righe[{numeroRiga}].tivCodice", riga.IDAliquotaIVA);
-        //                     parametri.Add($"righe[{numeroRiga}].prezzo", "");
-        //                     parametri.Add($"righe[{numeroRiga}].note", riga.Note);
-        //                     parametri.Add($"[righe{numeroRiga}].tipoMovimento", "");
-        //                     
-        //                     numeroRiga++;
-        //                 }
-        //
-        //                 var risultato = httpClient.PostAsync(URLApi + "/api/ordine/inserisci", new FormUrlEncodedContent(parametri)).GetAwaiter().GetResult();
-        //                 risultato.EnsureSuccessStatusCode();
-        //                 if ((int)risultato.StatusCode == 400 || (int)risultato.StatusCode == 500)
-        //                 {
-        //                     return new RisultatoElaborazione(false, $"Errore creazione testata documento {risultato.StatusCode.ToString()}");
-        //                 }
-        //
-        //                 var risposta = risultato.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-        //                 var risultatoOperazione = JsonConvert.DeserializeObject<RisultatoRichiestaCrezioneOrdine>(risposta);
-        //
-        //                 documento.IDEsternoElaborazioneElemento = risultatoOperazione.idOvt;
-        //                 documento.RiferimentoEsternoElaborazioneElemento = risultatoOperazione.idOvt;
-        //                 
-        //             }
-        //             catch (Exception ex)
-        //             {
-        //                 return new RisultatoElaborazione(false, $"Errore creazione testata documento {ex}");
-        //             }
-        //         }
-        //     }
-        //
-        //     return new RisultatoElaborazione(true);
-        // }
 
         private InlineResponse200 RilevaTokenDatiAusiliari()
         {
