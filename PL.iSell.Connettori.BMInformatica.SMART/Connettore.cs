@@ -24,6 +24,8 @@ using PL.iSell.Utilita.ValoriTabelle.GruppiArticoli;
 using PL.iSell.Utilita.ValoriTabelle.RelazioniAnagrafiche;
 using PL.iSell.Utilita.ValoriTabelle.TipiDocumenti;
 using PL.Utilita;
+using PL.Utilita.Comune;
+using PL.Utilita.Comune.ParametriConfigurazione;
 using PL.Utilita.ParametriConfigurazione;
 using AttivitaPassivita = PL.iSell.Utilita.ValoriTabelle.Listini.AttivitaPassivita;
 using GestioneLotti = PL.iSell.Utilita.ValoriTabelle.Articoli.GestioneLotti;
@@ -1685,13 +1687,13 @@ FROM
 
                 var dataConsegna = string.Empty;
                 if (string.IsNullOrWhiteSpace(documento.DataConsegna)
-                    && DateTime.Compare(PL.Utilita.FunzioniDati.ConvertiStringaDataYYYYMMDDHHMMSSMMInData(documento.DataConsegna), PL.Utilita.FunzioniDati.ConvertiStringaDataYYYYMMDDHHMMSSMMInData(documento.DataDocumento)) < 0)
+                    && DateTime.Compare(PL.Utilita.Comune.FunzioniDati.ConvertiStringaDataYYYYMMDDHHMMSSMMInData(documento.DataConsegna), PL.Utilita.Comune.FunzioniDati.ConvertiStringaDataYYYYMMDDHHMMSSMMInData(documento.DataDocumento)) < 0)
                 {
-                    dataConsegna = PL.Utilita.FunzioniDati.ConvertiStringaDataYYYYMMDDHHMMSSMMInData(documento.DataDocumento).ToString("dd-MM-yyyy");
+                    dataConsegna = PL.Utilita.Comune.FunzioniDati.ConvertiStringaDataYYYYMMDDHHMMSSMMInData(documento.DataDocumento).ToString("dd-MM-yyyy");
                 }
                 else
                 {
-                    dataConsegna = PL.Utilita.FunzioniDati.ConvertiStringaDataYYYYMMDDHHMMSSMMInData(documento.DataConsegna).ToString("dd-MM-yyyy");
+                    dataConsegna = PL.Utilita.Comune.FunzioniDati.ConvertiStringaDataYYYYMMDDHHMMSSMMInData(documento.DataConsegna).ToString("dd-MM-yyyy");
                 }
 
                 ApiResponse<InlineResponse2005>? risposta;
@@ -1705,7 +1707,7 @@ FROM
                         ID_TIPO_DOCUMENTO_ORDINE,
                         idAnagraficaDestinatario == string.Empty ? ApiClient.NULL_VALUE : idAnagraficaDestinatario,
                         ApiClient.NULL_VALUE,
-                        PL.Utilita.FunzioniDati.ConvertiStringaDataYYYYMMDDHHMMSSMMInData(documento.DataDocumento).ToString("dd-MM-yyyy"),
+                        PL.Utilita.Comune.FunzioniDati.ConvertiStringaDataYYYYMMDDHHMMSSMMInData(documento.DataDocumento).ToString("dd-MM-yyyy"),
                         dataConsegna,
                         ApiClient.NULL_VALUE,
                         ApiClient.NULL_VALUE,
